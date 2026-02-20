@@ -27,19 +27,11 @@ namespace esphome {
         }
 
         const std::string &new_state = it->second;
-
-        bool changed = false;
-        const char *cur_opt = nullptr;
-        
-        #if ESPHOME_VERSION_CODE >= VERSION_CODE(2025, 11, 0)
-            cur_opt = this->current_option(); 
-            changed = (cur_opt == nullptr) || (std::strcmp(cur_opt, new_state.c_str()) != 0);
-        #else
-            cur_opt = this->state.c_str();
-            changed = (this->state != new_state);
-        #endif
+        auto cur_opt_ref = this->current_option();
+        bool changed = cur_opt_ref.empty() || cur_opt_ref != new_state.c_str();
         
         if (changed) {
+            const char *cur_opt = cur_opt_ref.empty() ? nullptr : cur_opt_ref.str().c_str();
             ESP_LOGI(LOG_HARDWARE_SELECT_TAG, "Code %d state changed: %s -> %s (val: %d)", this->code_, (cur_opt ? cur_opt : "<none>"), new_state.c_str(), value);
             this->publish_state(new_state);
         } else {
